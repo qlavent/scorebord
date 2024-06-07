@@ -5,8 +5,8 @@
 #define LED_PIN 2
 #define MAX_POWER_MILLIAMPS 8000
 CRGB leds[NUM_LEDS];
-SPARTA_color = {12, 126,64};
-TIME_color = {255,0,0};
+int SPARTA_color[] = {255,0,0};
+int TIME_color[] = {0,255,255};
 bool numbers_full[][7] = 
 {
   {true, true, true, false, true, true, true},
@@ -27,7 +27,7 @@ int own_score;
 // variables to control the time
 unsigned long startSeconds;  //some global variables available anywhere in the program
 unsigned long currentSeconds;
-const unsigned long period = 1;  // tick every second
+const unsigned long period = 60;  // tick every second
 int time_counter;
 bool paused;
 
@@ -63,7 +63,7 @@ bool set_up = true;
 void setup() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_POWER_MILLIAMPS);
-  FastLED.setBrightness(255);
+  //FastLED.setBrightness(255);
 
   Serial.begin(9600);
 
@@ -83,19 +83,39 @@ void setup() {
 }
 void loop() {
   if (set_up){
-    for(int i = 0; i<320;i++){
-      leds[i-1] = CRGB::Black;
-      leds[i] = CRGB::Red;
-      FastLED.show();
-      delay(10);
-    }
     
-    for(int i = 318; i>-1;i--){
-      leds[i+1] = CRGB::Black;
-      leds[i] = CRGB::Red;
-      FastLED.show();
-      delay(10);
+    for(int i = 0; i<320;i++){
+      leds[i] = CRGB::Black;
     }
+    FastLED.show();
+    delay(300);
+    for(int i = 0; i<32;i++){
+      for (int j = 0;j<10;j++){
+        leds[i*10+j] = CRGB::Red;
+      }
+      FastLED.show();
+      delay(500);
+      for (int j = 0;j<10;j++){
+        leds[i*10+j] = CRGB::Black;
+      }
+      FastLED.show();
+    }
+    for(int i = 0; i<32;i++){
+      for (int j = 0;j<10;j++){
+        leds[i*10+j] = CRGB::Cyan;
+      }
+      FastLED.show();
+      delay(500);
+      for (int j = 0;j<10;j++){
+        leds[i*10+j] = CRGB::Black;
+      }
+      FastLED.show();
+    }
+    for(int i = 0; i<320;i++){
+      leds[i] = CRGB::Black;
+    }
+    FastLED.show();
+    delay(300);
     set_up = false;
   }
 
