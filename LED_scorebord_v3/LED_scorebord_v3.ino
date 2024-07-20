@@ -107,7 +107,7 @@ void loop() {
       }
       FastLED.show();
       delay(500);
-      for (int j = 0;j<10;j++){
+      for (int j = 0;j<6;j++){
         leds[i*6+j] = CRGB::Black;
       }
       FastLED.show();
@@ -304,7 +304,6 @@ void loop() {
     for (int i = 0; i < 12; i++) {
       if (own_score>9) {
         leds[i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
-          
       } else {
         leds[i] = CRGB::Black;
       }
