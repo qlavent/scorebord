@@ -40,7 +40,7 @@ int own_score;
 // variables to control the time
 unsigned long startSeconds;  //some global variables available anywhere in the program
 unsigned long currentSeconds;
-const unsigned long period = 1000;  // tick every second
+const unsigned long period = 60000;  // tick every second
 int time_counter;
 bool paused;
 
@@ -70,6 +70,8 @@ unsigned long lastDebounceTime_opponent_score_down = 0;
 unsigned long lastDebounceTime_opponent_score_up = 0;
 
 unsigned long debounceDelay = 20;
+
+bool buttons_pressed[6] = {false,false,false,false,false,false};
 
 bool set_up = true;
 
@@ -153,11 +155,7 @@ void loop() {
 
         // only toggle the LED if the new button state is HIGH
         if (switchstate_own_score_up == HIGH) {
-          if (own_score < 19) {
-            own_score += 1;
-          }
-          Serial.write("ou");
-          Serial.println();
+          buttons_pressed[0]= true;
         }
       }
     }
@@ -176,10 +174,7 @@ void loop() {
         switchstate_own_score_down = reading_own_score_down;
         // only toggle the LED if the new button state is HIGH
         if (switchstate_own_score_down == HIGH) {
-          if (own_score > 0) {
-            own_score -= 1;
-          }
-          
+          buttons_pressed[1]= true;        
         }
       }
     }
@@ -201,10 +196,7 @@ void loop() {
 
         // only toggle the LED if the new button state is HIGH
         if (switchstate_pause_time == HIGH) {
-          if (paused == true && time_counter != 90) {
-            paused = false;
-            startSeconds = millis();
-          }
+          buttons_pressed[2]= true;
         }
       }
     }
@@ -226,9 +218,7 @@ void loop() {
 
         // only toggle the LED if the new button state is HIGH
         if (switchstate_reset_time == HIGH) {
-          time_counter = 0;
-          paused = true;
-
+          buttons_pressed[3]= true;
         }
       }
     }
@@ -250,9 +240,7 @@ void loop() {
 
         // only toggle the LED if the new button state is HIGH
         if (switchstate_opponent_score_up == HIGH) {
-          if (opponent_score < 19) {
-            opponent_score += 1;
-          }
+          buttons_pressed[4]= true;
         }
       }
     }
@@ -274,94 +262,118 @@ void loop() {
 
         // only toggle the LED if the new button state is HIGH
         if (switchstate_opponent_score_down == HIGH) {
-          if (opponent_score > 0) {
-            opponent_score -= 1;
-          }
+          buttons_pressed[5]= true;
         }
       }
     }
 
-    currentSeconds = millis();                            //get the current "time" (actually the number of milliseconds since the program started)
-    if (currentSeconds - startSeconds >= period && !paused)  //test whether the period has elapsed
-    {
-      if (time_counter == 44) {
+    bool changed = false;
+    if (!paused && (millis() - startSeconds >= period)) {
+      startSeconds = millis();
+      time_counter++;
+      changed = true;
+
+      if (time_counter == 45 || time_counter == 90) {
         paused = true;
-      } else if (time_counter == 89) {
-        paused = true;
       }
-      time_counter += 1;
+    }
 
-      //printing the scorebord to the screen
-      /*Serial.print(own_score);
-      Serial.write("      ");
-      Serial.print(time_counter);
-      Serial.write("      ");
-      Serial.print(opponent_score);
-      Serial.println();
+    if (buttons_pressed[0] == true){
+      if (own_score < 19) {
+        own_score += 1;
+        changed = true;
+      }
+    }
+    if (buttons_pressed[1] == true){
+      if (own_score > 0) {
+        own_score -= 1;
+        changed = true;
+      }
+    }
+    if (buttons_pressed[2] == true){
+      if (paused == true && time_counter != 90) {
+        paused = false;
+        startSeconds = millis();
+      }
+    }
+    if (buttons_pressed[3] == true){
+      time_counter = 0;
+      paused = true;
+      changed = true;
+    }
+    if (buttons_pressed[4] == true){
+      if (opponent_score < 19) {
+        opponent_score += 1;
+        changed = true;
+      }
+    }
+    if (buttons_pressed[5] == true){
+      if (opponent_score > 0) {
+        opponent_score -= 1;
+        changed = true;
+      }
+    }
 
-      Serial.print(own_score/10);
-      Serial.print(own_score%10);
-      Serial.write("      ");
-      Serial.print(time_counter/10);
-      Serial.print(time_counter%10);
-      Serial.write("      ");
-      Serial.print(opponent_score/10);
-      Serial.print(opponent_score%10);
-      Serial.println();*/
+    buttons_pressed[0] = false;
+    buttons_pressed[1] = false;
+    buttons_pressed[2] = false;
+    buttons_pressed[3] = false;
+    buttons_pressed[4] = false;
+    buttons_pressed[5] = false;
 
-      startSeconds = startSeconds + period;  //IMPORTANT to save the start time of the current LED state.
-    }
-    
-    // code for eventually showing the numbers on the led display
-    // control the single one
-    for (int i = 0; i < 12; i++) {
-      if (own_score>9) {
-        leds[i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
-      } else {
-        leds[i] = CRGB::Black;
+    if (changed){
+      // code for eventually showing the numbers on the led display
+      // control the single one
+      for (int i = 0; i < 12; i++) {
+        if (own_score>9) {
+          leds[i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
+        } else {
+          leds[i] = CRGB::Black;
+        }
       }
-    }
-    // control own_score
-    for (int i = 0; i < 42; i++) {
-      if (numbers_full[own_score % 10][i/6]) {
-        leds[12+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
-      } else {
-        leds[12 + i] = CRGB::Black;
+      // control own_score
+      for (int i = 0; i < 42; i++) {
+        if (numbers_full[own_score % 10][i/6]) {
+          leds[12+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
+        } else {
+          leds[12 + i] = CRGB::Black;
+        }
       }
-    }
-    // control first digit time
-    for (int i = 0; i < 42; i++) {
-      if (numbers_full_time[time_counter / 10][i/6] == 1) {
-        leds[54 + i].setRGB(TIME_color[0], TIME_color[1], TIME_color[2]);
-        //leds[90+i] = CRGB::Red;
-      } else {
-        leds[54 + i] = CRGB::Black;
+      // control first digit time
+      for (int i = 0; i < 42; i++) {
+        if (numbers_full_time[time_counter / 10][i/6] == 1) {
+          leds[54 + i].setRGB(TIME_color[0], TIME_color[1], TIME_color[2]);
+          //leds[90+i] = CRGB::Red;
+        } else {
+          leds[54 + i] = CRGB::Black;
+        }
       }
-    }
-    // control second digit time
-    for (int i = 0; i < 42; i++) {
-      if (numbers_full[time_counter % 10][i/6] == 1) {
-        leds[96 + i].setRGB(TIME_color[0], TIME_color[1], TIME_color[2]);
-        //leds[160 + i] = CRGB::Red;
-      } else {
-        leds[96 + i] = CRGB::Black;
+      // control second digit time
+      for (int i = 0; i < 42; i++) {
+        if (numbers_full[time_counter % 10][i/6] == 1) {
+          leds[96 + i].setRGB(TIME_color[0], TIME_color[1], TIME_color[2]);
+          //leds[160 + i] = CRGB::Red;
+        } else {
+          leds[96 + i] = CRGB::Black;
+        }
       }
-    }
-    // control one of opponent score
-    for (int i = 0; i < 12; i++) {
-      if (opponent_score>9) {
-        leds[138+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
-      } else {
-        leds[138 + i] = CRGB::Black;
+      // control one of opponent score
+      for (int i = 0; i < 12; i++) {
+        if (opponent_score>9) {
+          leds[138+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
+        } else {
+          leds[138 + i] = CRGB::Black;
+        }
       }
-    }
-    // control opponent_score
-    for (int i = 0; i < 42; i++) {
-      if (numbers_full[opponent_score % 10][i/6] == 1) {
-        leds[150+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
-      } else {
-        leds[150 + i] = CRGB::Black;
+      // control opponent_score
+      for (int i = 0; i < 42; i++) {
+        if (numbers_full[opponent_score % 10][i/6] == 1) {
+          leds[150+i].setRGB(SPARTA_color[0], SPARTA_color[1], SPARTA_color[2]);
+        } else {
+          leds[150 + i] = CRGB::Black;
+        }
       }
+      FastLED.show();
     }
     
     //delay(50);
@@ -372,7 +384,5 @@ void loop() {
     lastButtonState_reset_time = reading_reset_time;
     lastButtonState_opponent_score_down = reading_opponent_score_down;
     lastButtonState_opponent_score_up = reading_opponent_score_up;
-
-    FastLED.show();
   }
 }
