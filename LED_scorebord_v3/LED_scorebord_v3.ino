@@ -21,13 +21,26 @@ bool numbers_full[][7] =
   {false,true,true,true,true,true,true,}
 };
 
+bool numbers_full_time[][7] = 
+{
+  {true, true, true, false, true, true, true},
+  {false,false,true, false, false,false,true},
+  {false, true, true, true, true, true, false},
+  { false, true, true,true, false, true, true},
+  {true, false, true, true, false,false,true},
+  {true, true, false, true, false, true, true},
+  {true,true,false,true,true,true,true},
+  {false, true, true, false, false,false, true},
+  {true,true,true,true,true,true,true,},
+  {true,true,true,true,false,true,true,}
+};
 // variables to control the own score
 int own_score;
 
 // variables to control the time
 unsigned long startSeconds;  //some global variables available anywhere in the program
 unsigned long currentSeconds;
-const unsigned long period = 60;  // tick every second
+const unsigned long period = 1000;  // tick every second
 int time_counter;
 bool paused;
 
@@ -77,7 +90,7 @@ void setup() {
 
   own_score = 0;
   time_counter = 0;
-  startSeconds = seconds16();
+  startSeconds = millis();
   paused = true;
   opponent_score = 0;
 }
@@ -190,7 +203,7 @@ void loop() {
         if (switchstate_pause_time == HIGH) {
           if (paused == true && time_counter != 90) {
             paused = false;
-            startSeconds = seconds16();
+            startSeconds = millis();
           }
         }
       }
@@ -268,7 +281,7 @@ void loop() {
       }
     }
 
-    currentSeconds = seconds16();                            //get the current "time" (actually the number of milliseconds since the program started)
+    currentSeconds = millis();                            //get the current "time" (actually the number of milliseconds since the program started)
     if (currentSeconds - startSeconds >= period && !paused)  //test whether the period has elapsed
     {
       if (time_counter == 44) {
@@ -296,7 +309,7 @@ void loop() {
       Serial.print(opponent_score%10);
       Serial.println();*/
 
-      startSeconds = currentSeconds;  //IMPORTANT to save the start time of the current LED state.
+      startSeconds = startSeconds + period;  //IMPORTANT to save the start time of the current LED state.
     }
     
     // code for eventually showing the numbers on the led display
@@ -318,7 +331,7 @@ void loop() {
     }
     // control first digit time
     for (int i = 0; i < 42; i++) {
-      if (numbers_full[time_counter / 10][i/6] == 1) {
+      if (numbers_full_time[time_counter / 10][i/6] == 1) {
         leds[54 + i].setRGB(TIME_color[0], TIME_color[1], TIME_color[2]);
         //leds[90+i] = CRGB::Red;
       } else {
